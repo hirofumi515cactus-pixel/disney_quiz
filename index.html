@@ -1,0 +1,164 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>ディズニー機内クイズ</title>
+<style>
+    /* 全体のデザイン */
+    body {
+        font-family: sans-serif;
+        background: linear-gradient(135deg, #1e3c72 0%, #2a5298 100%);
+        color: white;
+        text-align: center;
+        margin: 0;
+        padding: 20px;
+        height: 100vh;
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        align-items: center;
+    }
+    .card {
+        background: rgba(255, 255, 255, 0.9);
+        color: #333;
+        padding: 20px;
+        border-radius: 20px;
+        width: 90%;
+        max-width: 400px;
+        border: 4px solid gold;
+    }
+    h1 { font-size: 24px; color: #1e3c72; margin-bottom: 10px; }
+    .question-text { font-size: 20px; font-weight: bold; margin-bottom: 20px; min-height: 60px;}
+    .btn-container { display: flex; flex-direction: column; gap: 10px; }
+    .option-btn {
+        background: #ff6b6b;
+        color: white;
+        border: none;
+        padding: 15px;
+        font-size: 18px;
+        border-radius: 50px;
+        cursor: pointer;
+    }
+    #feedback {
+        font-size: 80px;
+        position: absolute;
+        top: 50%; left: 50%;
+        transform: translate(-50%, -50%);
+        display: none;
+        z-index: 100;
+        pointer-events: none;
+    }
+    #score-display { font-size: 16px; margin-top: 10px; color: gold; }
+    ruby { font-size: 22px; }
+    rt { font-size: 12px; color: #555; }
+</style>
+</head>
+<body>
+
+<div id="quiz-screen" class="card">
+    <div id="score-display">いまのてんすう: <span id="current-score">0</span></div>
+    <h1>もんだい <span id="q-number">1</span></h1>
+    <div class="question-text" id="question">ロード中...</div>
+    <div class="btn-container" id="options"></div>
+</div>
+
+<div id="result-screen" class="card" style="display:none;">
+    <h1>🎉 けっか はっぴょう 🎉</h1>
+    <p style="font-size:18px;">あなたのスコアは...</p>
+    <div style="font-size:50px; color:red; font-weight:bold;">
+        <span id="final-score">0</span>点
+    </div>
+    <p id="comment">すごい！</p>
+    <button class="option-btn" onclick="location.reload()" style="background:blue;">もういちど</button>
+</div>
+
+<div id="feedback"></div>
+
+<script>
+    // Macのスマート引用符対策として、シンプルな記述に変更しています
+    var quizData = [
+        {
+            q: "<ruby>白雪姫<rt>しらゆきひめ</rt></ruby>が食べた<ruby>毒<rt>どく</rt></ruby>入りの果物は？",
+            options: ["バナナ", "リンゴ", "ミカン"],
+            a: "リンゴ"
+        },
+        {
+            q: "ミッキーの<ruby>魔法<rt>まほう</rt></ruby>使いの<ruby>師匠<rt>ししょう</rt></ruby>の名前は？",
+            options: ["イェン・シッド", "マーリン", "ジーニー"],
+            a: "イェン・シッド"
+        },
+        {
+            q: "くまのプーさんが大好きな食べ物は？",
+            options: ["ハチミツ", "ドーナツ", "サケ"],
+            a: "ハチミツ"
+        },
+        {
+            q: "アリエルの親友の魚の名前は？",
+            options: ["セバスチャン", "フランダー", "ニモ"],
+            a: "フランダー"
+        }
+    ];
+
+    var currentQuestion = 0;
+    var score = 0;
+    var feedback = document.getElementById("feedback");
+
+    function loadQuiz() {
+        var data = quizData[currentQuestion];
+        document.getElementById("q-number").innerText = currentQuestion + 1;
+        document.getElementById("question").innerHTML = data.q;
+        document.getElementById("current-score").innerText = score * 10;
+
+        var optionsDiv = document.getElementById("options");
+        optionsDiv.innerHTML = "";
+
+        for (var i = 0; i < data.options.length; i++) {
+            var btn = document.createElement("button");
+            btn.innerText = data.options[i];
+            btn.className = "option-btn";
+            (function(opt) {
+                btn.onclick = function() { checkAnswer(opt, data.a); };
+            })(data.options[i]);
+            optionsDiv.appendChild(btn);
+        }
+    }
+
+    function checkAnswer(selected, correct) {
+        if (selected === correct) {
+            score++;
+            feedback.innerText = "⭕️";
+            feedback.style.color = "green";
+        } else {
+            feedback.innerText = "❌";
+            feedback.style.color = "red";
+        }
+        
+        feedback.style.display = "block";
+        setTimeout(function() {
+            feedback.style.display = "none";
+            nextQuestion();
+        }, 800);
+    }
+
+    function nextQuestion() {
+        currentQuestion++;
+        if (currentQuestion < quizData.length) {
+            loadQuiz();
+        } else {
+            showResult();
+        }
+    }
+
+    function showResult() {
+        document.getElementById("quiz-screen").style.display = "none";
+        document.getElementById("result-screen").style.display = "block";
+        document.getElementById("final-score").innerText = score * 10;
+    }
+
+    // 実行
+    loadQuiz();
+</script>
+
+</body>
+</html>
