@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
 <title>フロリダディズニー機内クイズ</title>
 <script>
-    // ▼ エラーが起きたら画面に表示する「診断機能」
+    // エラー診断機能
     window.onerror = function(msg, url, line) {
         alert("【エラー発生】\n" + msg + "\n行: " + line);
         return false;
@@ -15,7 +15,7 @@
     /* 全体のデザイン設定 */
     body {
         font-family: -apple-system, BlinkMacSystemFont, "Hiragino Maru Gothic Pro", "Yu Gothic", sans-serif;
-        background: linear-gradient(135deg, #005C97 0%, #363795 100%);
+        background: linear-gradient(135deg, #1e3c72 0%, #2a5298 100%);
         color: #333;
         margin: 0; padding: 0;
         height: 100vh;
@@ -24,7 +24,7 @@
     }
     .card {
         background: #fff;
-        width: 90%; max-width: 400px; height: 85vh;
+        width: 90%; max-width: 400px; height: 90vh;
         border-radius: 20px;
         box-shadow: 0 10px 30px rgba(0,0,0,0.5);
         display: flex; flex-direction: column;
@@ -34,33 +34,46 @@
     .screen { display: none; padding: 20px; text-align: center; height: 100%; box-sizing: border-box; }
     .screen.active { display: flex; flex-direction: column; justify-content: center; }
     
-    /* タイトル画面 */
-    #start-screen h1 { color: #005C97; font-size: 28px; margin-bottom: 10px; }
-    
-    /* ボタン */
+    /* ボタン共通 */
     .next-btn {
         background: #FFD700; color: #333; border: none; padding: 15px 30px;
         font-size: 20px; border-radius: 50px; cursor: pointer; font-weight: bold;
-        box-shadow: 0 4px 0 #d4b106; margin-top: 20px;
+        box-shadow: 0 4px 0 #d4b106; margin-top: 20px; width: 100%;
     }
     .next-btn:active { transform: translateY(4px); box-shadow: none; }
     
     /* クイズ画面 */
     .status-bar { display: flex; justify-content: space-between; font-size: 14px; color: #666; margin-bottom: 10px; font-weight: bold; }
-    .question-box { font-size: 20px; font-weight: bold; margin: 20px 0; min-height: 60px; display: flex; align-items: center; justify-content: center; }
-    .options-grid { display: flex; flex-direction: column; gap: 12px; }
-    .option-btn {
-        background: #f0f4f8; border: 2px solid #d1d9e6; padding: 15px; border-radius: 12px;
-        font-size: 18px; cursor: pointer; font-weight: bold; color: #005C97;
-    }
+    .question-box { font-size: 18px; font-weight: bold; margin: 10px 0 20px 0; min-height: 50px; display: flex; align-items: center; justify-content: center; line-height: 1.4; }
     
+    /* 4択グリッド */
+    .options-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+    .option-btn {
+        background: #f0f4f8; border: 2px solid #d1d9e6; padding: 12px 5px; border-radius: 12px;
+        font-size: 16px; cursor: pointer; font-weight: bold; color: #005C97;
+        min-height: 60px; display: flex; align-items: center; justify-content: center;
+        transition: opacity 0.5s;
+    }
+    .option-btn:active { background: #d1d9e6; }
+    .option-btn.disabled { opacity: 0.2; pointer-events: none; }
+
+    /* お助け機能ボタン */
+    .lifeline-area { margin-top: 15px; border-top: 1px dashed #ccc; padding-top: 10px; }
+    .lifeline-btn {
+        background: #e74c3c; color: white; border: none; padding: 10px 20px;
+        border-radius: 30px; font-weight: bold; cursor: pointer; box-shadow: 0 3px 0 #c0392b;
+        font-size: 14px; display: inline-flex; align-items: center; gap: 5px;
+    }
+    .lifeline-btn:disabled { background: #95a5a6; box-shadow: none; cursor: not-allowed; opacity: 0.6; }
+
     /* 解説画面 */
     #explain-screen { background: #fdfdf0; }
-    .result-icon { font-size: 60px; display: block; margin-bottom: 10px; }
-    .explain-text { text-align: left; background: #fff; border: 2px dotted #aaa; padding: 15px; border-radius: 10px; margin: 15px 0; font-size: 16px; line-height: 1.6; }
+    .result-header { font-size: 24px; margin-bottom: 10px; font-weight: bold; }
+    .explain-text { text-align: left; background: #fff; border: 2px dotted #aaa; padding: 15px; border-radius: 10px; margin: 15px 0; font-size: 15px; line-height: 1.6; max-height: 40vh; overflow-y: auto; }
     
     /* 結果画面 */
-    .score-big { font-size: 60px; color: #c0392b; font-weight: bold; }
+    .score-big { font-size: 50px; color: #c0392b; font-weight: bold; margin: 10px 0; }
+    .praise-msg { font-size: 16px; color: #555; margin-bottom: 20px; line-height: 1.6; }
 </style>
 </head>
 <body>
@@ -68,22 +81,29 @@
     <div id="start-screen" class="screen active card">
         <div style="font-size:60px;">🏰✈️</div>
         <h1>フロリダ<br>ディズニー検定</h1>
-        <p>機内で予習！<br>全20問の旅へ出発しよう！</p>
+        <p>4択問題 全20問！<br>困った時は「50:50」を使おう！</p>
         <button class="next-btn" onclick="startGame()">クイズをはじめる</button>
-        <div style="margin-top:20px; font-size:12px; color:#aaa;">Ver.2.0 (Fixed)</div>
+        <div style="margin-top:20px; font-size:12px; color:#aaa;">Ver.3.0 (4-Choice Edition)</div>
     </div>
 
     <div id="quiz-screen" class="screen card">
         <div class="status-bar">
             <span>第 <span id="q-num">1</span>/20 問</span>
-            <span>スコア: <span id="score">0</span></span>
+            <span>SCORE: <span id="score">0</span></span>
         </div>
         <div class="question-box" id="question-text">読み込み中...</div>
+        
         <div class="options-grid" id="options-area"></div>
+
+        <div class="lifeline-area">
+            <button id="lifeline-btn" class="lifeline-btn" onclick="useLifeline()">
+                🆘 50:50 (残り1回)
+            </button>
+        </div>
     </div>
 
     <div id="explain-screen" class="screen card">
-        <div id="result-header"></div>
+        <div id="result-header" class="result-header"></div>
         <div class="explain-text">
             <strong>💡 解説・豆知識</strong><br>
             <span id="explain-content">ここに解説が入ります</span>
@@ -92,40 +112,41 @@
     </div>
 
     <div id="result-screen" class="screen card">
-        <h2>🎉 結果発表 🎉</h2>
-        <p>あなたの知識レベルは...</p>
+        <h2>🎉 検定終了 🎉</h2>
         <div class="score-big"><span id="final-score">0</span>点</div>
-        <p id="final-comment">コメント</p>
+        <p class="praise-msg" id="final-comment">コメント</p>
         <button class="next-btn" onclick="location.reload()" style="background:#3498db; box-shadow:0 4px 0 #2980b9; color:white;">もう一度あそぶ</button>
     </div>
 
 <script>
-    // ▼▼▼ クイズデータ ▼▼▼
+    // ▼▼▼ 4択クイズデータ ▼▼▼
+    // 各問題に選択肢を1つ追加して4択にしています
     var quizData = [
-        { q: "フロリダのディズニーワールドには、いくつの「テーマパーク」がある？", options: ["2つ", "4つ", "6つ"], a: "4つ", explain: "「マジックキングダム」「エプコット」「ハリウッドスタジオ」「アニマルキングダム」の4つです！さらに2つのプールもあります。" },
-        { q: "マジックキングダムにあるお城は、誰のお城？", options: ["シンデレラ城", "眠れる森の美女の城", "美女と野獣の城"], a: "シンデレラ城", explain: "東京と同じ「シンデレラ城」です！ちなみにカリフォルニアやパリは「眠れる森の美女の城」なんですよ。" },
-        { q: "銀色の大きな球体がシンボルのパークはどこ？", options: ["エプコット", "アニマルキングダム", "シー"], a: "エプコット", explain: "「エプコット」です。この球体の中もアトラクションになっています。世界の国の文化や、未来の技術がテーマのパークです。" },
-        { q: "本物の動物たちが暮らしているパークはどこ？", options: ["ジャングルクルーズ", "アニマルキングダム", "アドベンチャーランド"], a: "アニマルキングダム", explain: "「アニマルキングダム」です。サファリトラックに乗って、本物のキリンやライオンを見るアトラクションが大人気！" },
-        { q: "空を飛ぶロープウェイのような乗り物の名前は？", options: ["スカイライナー", "リゾートライン", "ドリームフライヤー"], a: "スカイライナー", explain: "「スカイライナー」です。ホテルとパークの間を、空から景色を楽しみながら移動できます。しかも無料！" },
-        { q: "映画『アバター』の世界で、空を飛ぶ生き物に乗れるアトラクションがあるのは？", options: ["エプコット", "アニマルキングダム", "マジックキングダム"], a: "アニマルキングダム", explain: "アニマルキングダムにある「フライト・オブ・パッセージ」です。世界最高の没入感と言われる、超人気アトラクションです！" },
-        { q: "映画『ガーディアンズ・オブ・ギャラクシー』のジェットコースターがあるのは？", options: ["エプコット", "ハリウッドスタジオ", "マジックキングダム"], a: "エプコット", explain: "エプコットに新しくできました。後ろ向きに発射する、世界最大級の屋内コースターです。酔いやすい人は注意！？" },
-        { q: "映画『トロン』のバイク型コースターがあるのは？", options: ["マジックキングダム", "エプコット", "アニマルキングダム"], a: "マジックキングダム", explain: "マジックキングダムのトゥモローランドにあります。バイクのように前傾姿勢でまたがって爆走します！爽快感抜群！" },
-        { q: "パークで大人気！パイナップル味のソフトクリームの名前は？", options: ["ドール・ウィップ", "ミッキーアイス", "トロピカルソフト"], a: "ドール・ウィップ", explain: "「ドール・ウィップ(Dole Whip)」です。暑いフロリダでは必須！マジックキングダムのアロハ・アイルなどで売っています。" },
-        { q: "アメリカで定番！ものすごく大きな「お肉」の食べ物は？", options: ["ターキーレッグ", "スモークチキン", "ジャンボハム"], a: "ターキーレッグ", explain: "「ターキーレッグ（七面鳥の足）」です。東京のチキンより遥かに大きくてワイルド！1つで満腹になります。" },
-        { q: "レストランの予約や、待ち時間の確認に使うスマホアプリの名前は？", options: ["My Disney Experience", "Disney Go", "Florida Guide"], a: "My Disney Experience", explain: "「My Disney Experience（マイ・ディズニー・エクスペリエンス）」です。これが無いと何も始まりません！必ず入れておきましょう。" },
-        { q: "パークの外にある、巨大なショッピングエリアの名前は？", options: ["ディズニー・スプリングス", "イクスピアリ", "ダウンタウン"], a: "ディズニー・スプリングス", explain: "「ディズニー・スプリングス」です。入場無料で、世界最大のディズニーストアや、たくさんのレストランがあります。" },
-        { q: "マジックキングダムの地面の下には何がある？", options: ["地下トンネル", "巨大な倉庫", "何も無い"], a: "地下トンネル", explain: "実は「Utilidor（ユーティリドー）」と呼ばれる地下通路が張り巡らされています。キャストやキャラクターはここを通って移動しているんです！" },
-        { q: "フロリダのディズニーワールド全体の広さはどれくらい？", options: ["東京ディズニーの約2倍", "山手線の内側くらい", "東京ドーム5個分"], a: "山手線の内側くらい", explain: "なんと「山手線の内側がすっぽり入る広さ」です！東京ディズニーリゾートの約50倍以上の面積があります。広大！" },
-        { q: "エプコットにある「ワールドショーケース」にはいくつの国の館がある？", options: ["5カ国", "11カ国", "20カ国"], a: "11カ国", explain: "11カ国です。日本館もあり、そこでは日本食が食べられたり、三越デパートでお買い物ができます。" },
-        { q: "初めてパークに来た時にもらえる、無料のプレゼントは？", options: ["缶バッジ", "ぬいぐるみ", "ポップコーン"], a: "缶バッジ", explain: "「1st Visit（ファーストビジット）」と書かれた缶バッジが無料でもらえます。ゲストリレーションやお店で聞いてみましょう！" },
-        { q: "『スター・ウォーズ』のエリア「ギャラクシーズ・エッジ」があるパークは？", options: ["ハリウッドスタジオ", "エプコット", "マジックキングダム"], a: "ハリウッドスタジオ", explain: "ハリウッドスタジオです。実物大のミレニアム・ファルコンに乗って操縦することができます！" },
-        { q: "パークのシンボル、アニマルキングダムにある巨大な木の名前は？", options: ["ツリー・オブ・ライフ", "ワールド・ツリー", "マザー・ツリー"], a: "ツリー・オブ・ライフ", explain: "「ツリー・オブ・ライフ（生命の木）」です。幹には300以上の動物の彫刻が隠されています。探してみてね！" },
-        { q: "夜のショー「ハッピリー・エバー・アフター」が行われるのはどこ？", options: ["マジックキングダム", "エプコット", "ホテル"], a: "マジックキングダム", explain: "マジックキングダムのシンデレラ城で行われます。プロジェクションマッピングと花火が融合した、世界で一番感動するショーです。" },
-        { q: "最後に、キャストさんに挨拶する時の合言葉は？", options: ["Have a Magical Day!", "Good Luck!", "See you!"], a: "Have a Magical Day!", explain: "「ハヴ・ア・マジカル・デイ！（魔法のような1日を！）」です。言われたら「ユー・トゥー！（あなたもね！）」と返しましょう！" }
+        { q: "フロリダのディズニーワールドには、いくつの「テーマパーク」がある？", options: ["2つ", "3つ", "4つ", "6つ"], a: "4つ", explain: "「マジックキングダム」「エプコット」「ハリウッドスタジオ」「アニマルキングダム」の4つです！" },
+        { q: "マジックキングダムにあるお城は、誰のお城？", options: ["シンデレラ城", "眠れる森の美女の城", "美女と野獣の城", "エルサの氷の城"], a: "シンデレラ城", explain: "東京と同じ「シンデレラ城」です！ちなみにカリフォルニアやパリは「眠れる森の美女の城」です。" },
+        { q: "銀色の大きな球体がシンボルのパークはどこ？", options: ["エプコット", "アニマルキングダム", "ハリウッドスタジオ", "マジックキングダム"], a: "エプコット", explain: "「エプコット」です。この球体の中もアトラクションになっています。" },
+        { q: "本物の動物たちが暮らしているパークはどこ？", options: ["ジャングルクルーズ", "アニマルキングダム", "アドベンチャーランド", "サファリパーク"], a: "アニマルキングダム", explain: "「アニマルキングダム」です。サファリトラックに乗って、本物のキリンやライオンを見に行こう！" },
+        { q: "空を飛ぶロープウェイのような乗り物の名前は？", options: ["スカイライナー", "リゾートライン", "ドリームフライヤー", "マジックカーペット"], a: "スカイライナー", explain: "「スカイライナー」です。ホテルとパークの間を、空から景色を楽しみながら移動できます。" },
+        { q: "映画『アバター』の世界で、空を飛ぶ生き物に乗れるアトラクションがあるのは？", options: ["エプコット", "アニマルキングダム", "マジックキングダム", "ハリウッドスタジオ"], a: "アニマルキングダム", explain: "アニマルキングダムにある「フライト・オブ・パッセージ」です。世界最高の没入感と言われる超人気アトラクション！" },
+        { q: "映画『ガーディアンズ・オブ・ギャラクシー』のジェットコースターがあるのは？", options: ["エプコット", "ハリウッドスタジオ", "マジックキングダム", "アニマルキングダム"], a: "エプコット", explain: "エプコットに新しくできました。後ろ向きに発射する、世界最大級の屋内コースターです。" },
+        { q: "映画『トロン』のバイク型コースターがあるのは？", options: ["マジックキングダム", "エプコット", "アニマルキングダム", "ハリウッドスタジオ"], a: "マジックキングダム", explain: "マジックキングダムのトゥモローランドにあります。前傾姿勢でまたがって爆走します！" },
+        { q: "パークで大人気！パイナップル味のソフトクリームの名前は？", options: ["ドール・ウィップ", "ミッキーアイス", "トロピカルソフト", "アロハ・サンデー"], a: "ドール・ウィップ", explain: "「ドール・ウィップ(Dole Whip)」です。暑いフロリダでは必須のスイーツ！" },
+        { q: "アメリカで定番！ものすごく大きな「お肉」の食べ物は？", options: ["ターキーレッグ", "スモークチキン", "ジャンボハム", "ギガステーキ"], a: "ターキーレッグ", explain: "「ターキーレッグ（七面鳥の足）」です。東京のチキンより遥かに大きくてワイルド！" },
+        { q: "レストランの予約や、待ち時間の確認に使うスマホアプリの名前は？", options: ["My Disney Experience", "Disney Go", "Florida Guide", "Magic App"], a: "My Disney Experience", explain: "「My Disney Experience」です。これが無いと何も始まりません！必ず入れておきましょう。" },
+        { q: "パークの外にある、巨大なショッピングエリアの名前は？", options: ["ディズニー・スプリングス", "イクスピアリ", "ダウンタウン", "ディズニー・ヴィレッジ"], a: "ディズニー・スプリングス", explain: "「ディズニー・スプリングス」です。入場無料で、世界最大のディズニーストアがあります。" },
+        { q: "マジックキングダムの地面の下には何がある？", options: ["地下トンネル", "巨大な倉庫", "古代遺跡", "何も無い"], a: "地下トンネル", explain: "実は「Utilidor（ユーティリドー）」と呼ばれる地下通路があり、キャストはここを通って移動しています。" },
+        { q: "フロリダのディズニーワールド全体の広さはどれくらい？", options: ["東京ディズニーの2倍", "山手線の内側くらい", "東京ドーム5個分", "大阪府くらい"], a: "山手線の内側くらい", explain: "なんと「山手線の内側がすっぽり入る広さ」です！東京の約50倍以上の面積があります。" },
+        { q: "エプコットにある「ワールドショーケース」にはいくつの国の館がある？", options: ["5カ国", "8カ国", "11カ国", "20カ国"], a: "11カ国", explain: "11カ国です。日本館もあり、三越デパートでお買い物ができます。" },
+        { q: "初めてパークに来た時にもらえる、無料のプレゼントは？", options: ["缶バッジ", "ぬいぐるみ", "ポップコーン", "カチューシャ"], a: "缶バッジ", explain: "「1st Visit」と書かれた缶バッジが無料でもらえます。キャストさんに聞いてみよう！" },
+        { q: "『スター・ウォーズ』のエリア「ギャラクシーズ・エッジ」があるパークは？", options: ["ハリウッドスタジオ", "エプコット", "マジックキングダム", "アニマルキングダム"], a: "ハリウッドスタジオ", explain: "ハリウッドスタジオです。実物大のミレニアム・ファルコンは圧巻です！" },
+        { q: "アニマルキングダムのシンボルである巨大な木の名前は？", options: ["ツリー・オブ・ライフ", "ワールド・ツリー", "マザー・ツリー", "キングダム・ツリー"], a: "ツリー・オブ・ライフ", explain: "「ツリー・オブ・ライフ（生命の木）」です。幹には300以上の動物の彫刻が隠されています。" },
+        { q: "夜のショー「ハッピリー・エバー・アフター」が行われるのはどこ？", options: ["マジックキングダム", "エプコット", "ハリウッドスタジオ", "ホテル"], a: "マジックキングダム", explain: "マジックキングダムのシンデレラ城で行われます。プロジェクションマッピングと花火が融合した感動のショーです。" },
+        { q: "キャストさんに挨拶する時の合言葉は？", options: ["Have a Magical Day!", "Good Luck!", "See you!", "Be Happy!"], a: "Have a Magical Day!", explain: "「ハヴ・ア・マジカル・デイ！」です。言われたら「You too!（あなたもね！）」と返しましょう！" }
     ];
 
     var currentQIndex = 0;
     var score = 0;
+    var lifelineUsed = false; // お助け機能を使ったかどうかのフラグ
 
     // 画面切り替え
     function showScreen(screenId) {
@@ -141,6 +162,9 @@
         try {
             currentQIndex = 0;
             score = 0;
+            lifelineUsed = false;
+            document.getElementById('lifeline-btn').disabled = false;
+            document.getElementById('lifeline-btn').innerText = "🆘 50:50 (残り1回)";
             showScreen('quiz-screen');
             loadQuestion();
         } catch(e) {
@@ -158,18 +182,53 @@
         var optionsDiv = document.getElementById('options-area');
         optionsDiv.innerHTML = '';
 
+        // ボタン生成
         for (var i = 0; i < data.options.length; i++) {
             var btn = document.createElement('button');
             btn.className = 'option-btn';
             btn.innerText = data.options[i];
+            btn.id = "btn-" + i; // IDを付与（50:50用）
             
-            // クリック設定（クロージャ対策）
+            // 正解かどうかをデータとして持たせる
+            btn.dataset.isCorrect = (data.options[i] === data.a) ? "true" : "false";
+
             (function(opt, answer, explanation) {
                 btn.onclick = function() { checkAnswer(opt, answer, explanation); };
             })(data.options[i], data.a, data.explain);
             
             optionsDiv.appendChild(btn);
         }
+    }
+
+    // お助け機能（50:50）
+    function useLifeline() {
+        if (lifelineUsed) return; // 既に使用済みなら何もしない
+
+        var buttons = document.querySelectorAll('.option-btn');
+        var wrongButtons = [];
+
+        // 不正解のボタンを探す
+        for (var i = 0; i < buttons.length; i++) {
+            if (buttons[i].dataset.isCorrect === "false") {
+                wrongButtons.push(buttons[i]);
+            }
+        }
+
+        // 不正解ボタンの中からランダムに2つ選んで消す
+        // シャッフル
+        wrongButtons.sort(function() { return 0.5 - Math.random(); });
+        
+        // 2つ消す（透明にしてクリック不可にする）
+        if (wrongButtons.length >= 2) {
+            wrongButtons[0].classList.add('disabled');
+            wrongButtons[1].classList.add('disabled');
+        }
+
+        // フラグを更新
+        lifelineUsed = true;
+        var btn = document.getElementById('lifeline-btn');
+        btn.disabled = true;
+        btn.innerText = "50:50 (使用済み)";
     }
 
     // 答え合わせ
@@ -179,9 +238,9 @@
         
         if(selected === correct) {
             score++;
-            header.innerHTML = '<span class="result-icon">⭕️</span><span class="correct-msg">正解！</span>';
+            header.innerHTML = '<span style="color:#27ae60">⭕️ 正解！</span>';
         } else {
-            header.innerHTML = '<span class="result-icon">❌</span><span class="wrong-msg">ざんねん...</span><br>正解は「' + correct + '」';
+            header.innerHTML = '<span style="color:#c0392b">❌ ざんねん...</span><br><span style="font-size:16px">正解は「' + correct + '」</span>';
         }
 
         explainContent.innerHTML = explanation;
@@ -206,11 +265,16 @@
         document.getElementById('final-score').innerText = finalScore;
         
         var comment = "";
-        if(finalScore === 100) comment = "🏆 あなたはディズニーマスター！完璧です！";
-        else if(finalScore >= 80) comment = "✨ すごい知識！ガイドさんになれます！";
-        else if(finalScore >= 60) comment = "👍 よく知ってるね！旅行が楽しみだ！";
-        else comment = "🔰 伸びしろあり！現地でたくさん発見してね！";
-        document.getElementById('final-comment').innerText = comment;
+        if(finalScore === 100) {
+            comment = "🏆 素晴らしい！！完全制覇おめでとうございます！<br>あなたは本物のディズニー・マスターです。現地でもみんなを引っ張っていってください！";
+        } else if(finalScore >= 80) {
+            comment = "✨ おしい！あと少しで満点でした。<br>でも、これだけの知識があればフロリダは100倍楽しめます！自信を持って出発しましょう！";
+        } else if(finalScore >= 50) {
+            comment = "👍 ナイスチャレンジ！<br>このクイズで知ったことは、現地で必ず役に立ちます。実際に行って答え合わせをするのが楽しみですね！";
+        } else {
+            comment = "🔰 挑戦してくれてありがとう！<br>知らないことがたくさんあったのは、これから現地で「初めての感動」がたくさん待っている証拠です。楽しんできてください！";
+        }
+        document.getElementById('final-comment').innerHTML = comment;
     }
 </script>
 </body>
