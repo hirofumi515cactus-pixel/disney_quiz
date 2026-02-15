@@ -5,14 +5,13 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
 <title>フロリダディズニー機内クイズ</title>
 <script>
-    // エラー診断機能
     window.onerror = function(msg, url, line) {
         alert("【エラー発生】\n" + msg + "\n行: " + line);
         return false;
     };
 </script>
 <style>
-    /* 全体のデザイン設定 */
+    /* 全体デザイン */
     body {
         font-family: -apple-system, BlinkMacSystemFont, "Hiragino Maru Gothic Pro", "Yu Gothic", sans-serif;
         background: linear-gradient(135deg, #1e3c72 0%, #2a5298 100%);
@@ -34,46 +33,71 @@
     .screen { display: none; padding: 20px; text-align: center; height: 100%; box-sizing: border-box; }
     .screen.active { display: flex; flex-direction: column; justify-content: center; }
     
-    /* ボタン共通 */
+    /* 入力フォーム */
+    input[type="text"] {
+        font-size: 20px; padding: 10px; width: 80%;
+        border: 2px solid #ccc; border-radius: 8px;
+        margin: 20px 0; text-align: center;
+    }
+
+    /* ボタン */
     .next-btn {
         background: #FFD700; color: #333; border: none; padding: 15px 30px;
-        font-size: 20px; border-radius: 50px; cursor: pointer; font-weight: bold;
-        box-shadow: 0 4px 0 #d4b106; margin-top: 20px; width: 100%;
+        font-size: 18px; border-radius: 50px; cursor: pointer; font-weight: bold;
+        box-shadow: 0 4px 0 #d4b106; margin-top: 10px; width: 100%;
     }
     .next-btn:active { transform: translateY(4px); box-shadow: none; }
-    
+    .sub-btn {
+        background: #95a5a6; color: white; border: none; padding: 10px 20px;
+        font-size: 14px; border-radius: 30px; cursor: pointer; margin-top: 15px;
+        box-shadow: 0 3px 0 #7f8c8d;
+    }
+    .share-btn {
+        background: #2ecc71; color: white; border: none; padding: 15px 30px;
+        font-size: 18px; border-radius: 50px; cursor: pointer; font-weight: bold;
+        box-shadow: 0 4px 0 #27ae60; margin-top: 10px; width: 100%;
+        display: flex; align-items: center; justify-content: center; gap: 10px;
+    }
+
     /* クイズ画面 */
     .status-bar { display: flex; justify-content: space-between; font-size: 14px; color: #666; margin-bottom: 10px; font-weight: bold; }
     .question-box { font-size: 18px; font-weight: bold; margin: 10px 0 20px 0; min-height: 50px; display: flex; align-items: center; justify-content: center; line-height: 1.4; }
-    
-    /* 4択グリッド */
     .options-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
     .option-btn {
         background: #f0f4f8; border: 2px solid #d1d9e6; padding: 12px 5px; border-radius: 12px;
-        font-size: 16px; cursor: pointer; font-weight: bold; color: #005C97;
+        font-size: 15px; cursor: pointer; font-weight: bold; color: #005C97;
         min-height: 60px; display: flex; align-items: center; justify-content: center;
         transition: opacity 0.5s;
     }
     .option-btn:active { background: #d1d9e6; }
     .option-btn.disabled { opacity: 0.2; pointer-events: none; }
 
-    /* お助け機能ボタン */
+    /* お助け機能 */
     .lifeline-area { margin-top: 15px; border-top: 1px dashed #ccc; padding-top: 10px; }
     .lifeline-btn {
-        background: #e74c3c; color: white; border: none; padding: 10px 20px;
+        background: #e74c3c; color: white; border: none; padding: 8px 15px;
         border-radius: 30px; font-weight: bold; cursor: pointer; box-shadow: 0 3px 0 #c0392b;
-        font-size: 14px; display: inline-flex; align-items: center; gap: 5px;
+        font-size: 14px;
     }
     .lifeline-btn:disabled { background: #95a5a6; box-shadow: none; cursor: not-allowed; opacity: 0.6; }
 
-    /* 解説画面 */
+    /* 解説・結果 */
     #explain-screen { background: #fdfdf0; }
-    .result-header { font-size: 24px; margin-bottom: 10px; font-weight: bold; }
     .explain-text { text-align: left; background: #fff; border: 2px dotted #aaa; padding: 15px; border-radius: 10px; margin: 15px 0; font-size: 15px; line-height: 1.6; max-height: 40vh; overflow-y: auto; }
     
-    /* 結果画面 */
+    /* 結果パスポート風デザイン */
+    .passport-stamp {
+        border: 4px double #c0392b; border-radius: 10px; padding: 20px;
+        margin: 10px 0; transform: rotate(-2deg);
+        background-image: radial-gradient(#fff 20%, #f0f0f0 20%);
+        background-size: 10px 10px;
+    }
     .score-big { font-size: 50px; color: #c0392b; font-weight: bold; margin: 10px 0; }
-    .praise-msg { font-size: 16px; color: #555; margin-bottom: 20px; line-height: 1.6; }
+    
+    /* 履歴テーブル */
+    #history-table { width: 100%; border-collapse: collapse; margin-top: 10px; font-size: 14px; }
+    #history-table th { background: #005C97; color: white; padding: 5px; }
+    #history-table td { border-bottom: 1px solid #ccc; padding: 5px; }
 </style>
 </head>
 <body>
@@ -81,45 +105,76 @@
     <div id="start-screen" class="screen active card">
         <div style="font-size:60px;">🏰✈️</div>
         <h1>フロリダ<br>ディズニー検定</h1>
-        <p>4択問題 全20問！<br>最新情報にアップデート完了！</p>
+        <p>名前を入れてスタート！</p>
+        
+        <input type="text" id="player-name" placeholder="お名前を入力してね" maxlength="10">
+        
         <button class="next-btn" onclick="startGame()">クイズをはじめる</button>
-        <div style="margin-top:20px; font-size:12px; color:#aaa;">Ver.4.0 (Latest Edition)</div>
+        <button class="sub-btn" onclick="showHistory()">これまでの成績を見る</button>
+        
+        <div style="margin-top:20px; font-size:12px; color:#aaa;">Ver.6.0 (Family Edition)</div>
     </div>
 
     <div id="quiz-screen" class="screen card">
         <div class="status-bar">
+            <span id="display-name">ゲスト</span>
             <span>第 <span id="q-num">1</span>/20 問</span>
-            <span>SCORE: <span id="score">0</span></span>
         </div>
         <div class="question-box" id="question-text">読み込み中...</div>
         
         <div class="options-grid" id="options-area"></div>
 
         <div class="lifeline-area">
-            <button id="lifeline-btn" class="lifeline-btn" onclick="useLifeline()">
-                🆘 50:50 (残り1回)
-            </button>
+            <button id="lifeline-btn" class="lifeline-btn" onclick="useLifeline()">🆘 50:50 (残り1回)</button>
         </div>
     </div>
 
     <div id="explain-screen" class="screen card">
-        <div id="result-header" class="result-header"></div>
+        <div id="result-header" style="font-size:24px; font-weight:bold; margin-bottom:10px;"></div>
         <div class="explain-text">
             <strong>💡 解説・豆知識</strong><br>
-            <span id="explain-content">ここに解説が入ります</span>
+            <span id="explain-content">...</span>
         </div>
         <button class="next-btn" onclick="nextQuestion()">つぎへ進む ➡</button>
     </div>
 
     <div id="result-screen" class="screen card">
-        <h2>🎉 検定終了 🎉</h2>
-        <div class="score-big"><span id="final-score">0</span>点</div>
-        <p class="praise-msg" id="final-comment">コメント</p>
-        <button class="next-btn" onclick="location.reload()" style="background:#3498db; box-shadow:0 4px 0 #2980b9; color:white;">もう一度あそぶ</button>
+        <h2>🎉 検定結果 🎉</h2>
+        
+        <div class="passport-stamp">
+            <div style="font-size:14px; color:#555;">CHALLENGER</div>
+            <div id="final-name" style="font-size:24px; font-weight:bold; color:#1e3c72;">NAME</div>
+            <hr style="border:0; border-top:1px dashed #c0392b; margin:10px 0;">
+            <div style="font-size:14px; color:#555;">SCORE</div>
+            <div class="score-big"><span id="final-score">0</span>点</div>
+            <div style="font-size:12px; color:#aaa;" id="play-date">2025/02/01</div>
+        </div>
+
+        <p style="font-size:13px; color:#666; margin-bottom:10px;">
+            👇 オンラインになったら押してね
+        </p>
+
+        <button class="share-btn" onclick="copyResult()">
+            <span>💬 結果をコピーしてLINEへ</span>
+        </button>
+
+        <button class="next-btn" onclick="location.reload()" style="background:#3498db; box-shadow:0 4px 0 #2980b9;">タイトルに戻る</button>
+    </div>
+
+    <div id="history-screen" class="screen card">
+        <h2>🏆 歴代スコア</h2>
+        <div style="overflow-y:auto; flex-grow:1;">
+            <table id="history-table">
+                <thead><tr><th>日時</th><th>名前</th><th>点数</th></tr></thead>
+                <tbody id="history-body"></tbody>
+            </table>
+        </div>
+        <button class="sub-btn" onclick="clearHistory()" style="background:#e74c3c;">履歴を消去</button>
+        <button class="next-btn" onclick="backToStart()">戻る</button>
     </div>
 
 <script>
-    // ▼▼▼ 4択クイズデータ（全20問） ▼▼▼
+    // ▼ クイズデータ（第20問修正版）
     var quizData = [
         { q: "東京（羽田）からダラス経由でフロリダディズニーがあるオーランドに行きます。飛行機は何時間搭乗するでしょうか？", options: ["約8時間", "約10時間", "約12時間", "約14時間"], a: "約14時間", explain: "羽田ーダラスが11時間30分、ダラスーオランドが2時間30分、合計で約14時間です。乗り継ぎ含めると、約18時間の長旅になります！" },
         { q: "日本とフロリダ（オーランド）の時差は何時間？（2月時点）", options: ["14時間", "8時間", "5時間", "時差はない"], a: "14時間", explain: "日本が14時間進んでいます。日本の昼12時は、フロリダの昨夜22時。時差ボケ対策が重要です！" },
@@ -140,14 +195,15 @@
         { q: "【Tips】朝の開園よりも早く到着し、開いた瞬間に人気アトラクションへ向かう作戦を通称なんと言う？", options: ["ロープ・ドロップ", "モーニング・ダッシュ", "アーリー・エントリー", "スター・スタート"], a: "ロープ・ドロップ", explain: "開園待ちのロープが下ろされることからこう呼ばれます。朝一の30分が勝負！早起きは三文の徳です。" },
         { q: "【飲み物】フロリダは暑いです。クイックサービスのレストランで「無料」でもらえるものは？", options: ["コーラ", "氷水（カップ）", "オレンジジュース", "炭酸水"], a: "氷水（カップ）", explain: "「カップ・オブ・ウォーター、プリーズ」と言えば、無料で氷水がもらえます。水分補給はこまめに！" },
         { q: "【お土産】パークで初めて来た人がもらえる、無料のプレゼントは？", options: ["カチューシャ", "ポップコーン", "缶バッジ", "ステッカー"], a: "缶バッジ", explain: "「1st Visit」の缶バッジが無料でもらえます。キャストやゲストリレーションで貰って、服につけよう！" },
-        { q: "今回のフロリダ旅行、一番楽しむべきなのは？", options: ["お父さん", "お母さん", "子どもたち", "全員！"], a: "全員！", explain: "家族みんなで協力して、最高の思い出を作りましょう！Have a Magical Day!" }
+        // ▼ 修正した第20問 ▼
+        { q: "今回のフロリダ旅行、一番楽しむべきなのは？", options: ["じーじ", "ばーば", "とも", "全員！"], a: "全員！", explain: "じーじも、ばーばも、ともくんも、全員で協力して、最高の思い出を作りましょう！Have a Magical Day!" }
     ];
 
     var currentQIndex = 0;
     var score = 0;
-    var lifelineUsed = false; // お助け機能を使ったかどうかのフラグ
+    var lifelineUsed = false;
+    var playerName = "";
 
-    // 画面切り替え
     function showScreen(screenId) {
         var screens = document.querySelectorAll('.screen');
         for (var i = 0; i < screens.length; i++) {
@@ -156,39 +212,40 @@
         document.getElementById(screenId).classList.add('active');
     }
 
-    // ゲーム開始
+    // ゲーム開始処理
     function startGame() {
-        try {
-            currentQIndex = 0;
-            score = 0;
-            lifelineUsed = false;
-            document.getElementById('lifeline-btn').disabled = false;
-            document.getElementById('lifeline-btn').innerText = "🆘 50:50 (残り1回)";
-            showScreen('quiz-screen');
-            loadQuestion();
-        } catch(e) {
-            alert("開始エラー: " + e);
+        var inputName = document.getElementById('player-name').value;
+        if(inputName.trim() === "") {
+            alert("お名前を入力してください！");
+            return;
         }
+        playerName = inputName;
+        document.getElementById('display-name').innerText = "挑戦者: " + playerName;
+        
+        currentQIndex = 0;
+        score = 0;
+        lifelineUsed = false;
+        var btn = document.getElementById('lifeline-btn');
+        btn.disabled = false;
+        btn.innerText = "🆘 50:50 (残り1回)";
+        
+        showScreen('quiz-screen');
+        loadQuestion();
     }
 
-    // 問題表示
     function loadQuestion() {
         var data = quizData[currentQIndex];
         document.getElementById('q-num').innerText = currentQIndex + 1;
-        document.getElementById('score').innerText = score * 5;
         document.getElementById('question-text').innerHTML = data.q;
 
         var optionsDiv = document.getElementById('options-area');
         optionsDiv.innerHTML = '';
 
-        // ボタン生成
         for (var i = 0; i < data.options.length; i++) {
             var btn = document.createElement('button');
             btn.className = 'option-btn';
             btn.innerText = data.options[i];
-            btn.id = "btn-" + i; 
-            
-            // 正解判定
+            btn.id = "btn-" + i;
             btn.dataset.isCorrect = (data.options[i] === data.a) ? "true" : "false";
 
             (function(opt, answer, explanation) {
@@ -199,34 +256,24 @@
         }
     }
 
-    // お助け機能（50:50）
     function useLifeline() {
         if (lifelineUsed) return; 
-
         var buttons = document.querySelectorAll('.option-btn');
         var wrongButtons = [];
-
-        // 不正解のボタンを探す
         for (var i = 0; i < buttons.length; i++) {
-            if (buttons[i].dataset.isCorrect === "false") {
-                wrongButtons.push(buttons[i]);
-            }
+            if (buttons[i].dataset.isCorrect === "false") wrongButtons.push(buttons[i]);
         }
-
-        // シャッフルして2つ消す
         wrongButtons.sort(function() { return 0.5 - Math.random(); });
         if (wrongButtons.length >= 2) {
             wrongButtons[0].classList.add('disabled');
             wrongButtons[1].classList.add('disabled');
         }
-
         lifelineUsed = true;
         var btn = document.getElementById('lifeline-btn');
         btn.disabled = true;
         btn.innerText = "50:50 (使用済み)";
     }
 
-    // 答え合わせ
     function checkAnswer(selected, correct, explanation) {
         var header = document.getElementById('result-header');
         var explainContent = document.getElementById('explain-content');
@@ -237,12 +284,10 @@
         } else {
             header.innerHTML = '<span style="color:#c0392b">❌ ざんねん...</span><br><span style="font-size:16px">正解は「' + correct + '」</span>';
         }
-
         explainContent.innerHTML = explanation;
         showScreen('explain-screen');
     }
 
-    // 次の問題へ
     function nextQuestion() {
         currentQIndex++;
         if (currentQIndex < quizData.length) {
@@ -253,23 +298,72 @@
         }
     }
 
-    // 結果発表
     function showResult() {
         showScreen('result-screen');
         var finalScore = score * 5;
+        
+        document.getElementById('final-name').innerText = playerName;
         document.getElementById('final-score').innerText = finalScore;
         
-        var comment = "";
-        if(finalScore === 100) {
-            comment = "🏆 完全制覇おめでとうございます！<br>最新情報も攻略法もバッチリです。現地でもリーダーシップを発揮してください！";
-        } else if(finalScore >= 80) {
-            comment = "✨ 素晴らしい知識！<br>ロープ・ドロップやライダースイッチなど、重要なことは全部わかっています。自信を持って出発！";
-        } else if(finalScore >= 50) {
-            comment = "👍 ナイスチャレンジ！<br>クイズで覚えた「スリンキー」や「ティアナ」に、実際に乗りに行くのが楽しみですね！";
-        } else {
-            comment = "🔰 伸びしろあり！<br>現地で「あ、これクイズに出てたやつだ！」と発見するのも旅の楽しみです。行ってらっしゃい！";
+        var d = new Date();
+        var dateStr = d.getFullYear() + "/" + (d.getMonth()+1) + "/" + d.getDate() + " " + d.getHours() + ":" + ("0"+d.getMinutes()).slice(-2);
+        document.getElementById('play-date').innerText = dateStr;
+
+        saveToHistory(playerName, finalScore, dateStr);
+    }
+
+    // ▼ 結果をクリップボードにコピー（LINE送付用）
+    function copyResult() {
+        var finalScore = score * 5;
+        var text = "🏰 フロリダディズニー検定結果 🏰\n" +
+                   "名前: " + playerName + "\n" +
+                   "得点: " + finalScore + "点 / 100点\n" +
+                   "------------------\n" +
+                   "家族みんなで楽しもう！";
+        
+        // スマホ(ファイル形式)でも動くコピー処理
+        var textarea = document.createElement("textarea");
+        textarea.value = text;
+        document.body.appendChild(textarea);
+        textarea.select();
+        document.execCommand("copy");
+        document.body.removeChild(textarea);
+        
+        alert("結果をコピーしました！\nLINEを開いて貼り付けてください。");
+    }
+
+    // 履歴保存機能
+    function saveToHistory(name, score, date) {
+        var history = JSON.parse(localStorage.getItem('disneyQuizHistory')) || [];
+        history.push({ name: name, score: score, date: date });
+        localStorage.setItem('disneyQuizHistory', JSON.stringify(history));
+    }
+
+    function showHistory() {
+        showScreen('history-screen');
+        var history = JSON.parse(localStorage.getItem('disneyQuizHistory')) || [];
+        var tbody = document.getElementById('history-body');
+        tbody.innerHTML = "";
+        if (history.length === 0) {
+            tbody.innerHTML = "<tr><td colspan='3'>まだ履歴がありません</td></tr>";
+            return;
         }
-        document.getElementById('final-comment').innerHTML = comment;
+        history.reverse();
+        history.forEach(function(item) {
+            var row = "<tr><td>" + item.date.split(' ')[1] + "</td><td>" + item.name + "</td><td>" + item.score + "</td></tr>";
+            tbody.innerHTML += row;
+        });
+    }
+
+    function clearHistory() {
+        if(confirm("履歴をすべて消しますか？")) {
+            localStorage.removeItem('disneyQuizHistory');
+            showHistory();
+        }
+    }
+
+    function backToStart() {
+        showScreen('start-screen');
     }
 </script>
 </body>
